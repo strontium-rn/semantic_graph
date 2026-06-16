@@ -104,8 +104,7 @@ source .venv/bin/activate          # macOS / Linux
 # .venv\Scripts\activate           # Windows
 
 # Install dependencies
-pip install pandas numpy scipy networkx matplotlib seaborn \
-            python-louvain tqdm xlrd openpyxl
+pip install -r requirements.txt
 ```
 
 ## Acquiring the Data
