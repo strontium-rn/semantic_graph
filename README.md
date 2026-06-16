@@ -95,7 +95,7 @@ The project uses Python 3.13 and standard scientific computing libraries.
 
 ```bash
 # Clone and enter the repo
-git clone https://github.com/strontium-rn/semantic_graph_project.git
+git clone https://github.com/strontium-rn/semantic_graph.git
 cd semantic_graph_project
 
 # Create a virtual environment
