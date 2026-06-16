@@ -1,107 +1,16 @@
-# Semantic Graph Project
-
-A graph-theoretic and psycholinguistic investigation of how human semantic memory
-is organized and retrieved. This project builds a directed weighted graph of English
-semantic associations from crowdsourced word-association data, validates that graph
-against human reaction-time priming experiments, and extends the analysis to
-cross-linguistic comparison and second-language (L2) speaker behavior.
-
-## Research Question
-
-To what extent do the topological properties of empirical semantic graphs —
-constructed from human word-association data — differ across language communities,
-and can a validated Markov Chain Random Walk model of spreading activation detect
-and quantify these cross-linguistic structural differences?
-
-Three sub-questions follow from this:
-
-- **RQ1.** Does shortest-path distance in the semantic graph significantly predict
-  semantic priming reaction times, validating the graph as a model of human
-  semantic memory?
-- **RQ2.** How do graph-theoretic properties (clustering, centrality, path length,
-  community structure) differ between English and a typologically distinct language?
-- **RQ3.** Does a stochastic noise parameter `ε` applied to the Markov transition
-  matrix accurately model the associative behavior of L2 speakers as compared to
-  native (L1) speakers?
-
-## Approach
-
-The project moves through four analytical phases.
-
-**Phase 1 — Graph construction.** Build a directed weighted graph `G = (V, E, W)`
-from the Small World of Words (SWOW) dataset. Words become nodes; population-level
-cue-to-response association strengths become directed edge weights. A standard
-preprocessing pipeline filters non-content tokens and rare associations before
-the graph is materialized.
-
-**Phase 2 — Empirical validation.** Compute Dijkstra shortest-path distances (with
-edge weights inverted as `1/Wᵢⱼ`) for prime-target pairs in the Semantic Priming
-Project (SPP) dataset. Correlate graph distance against z-scored reaction-time
-priming effects. A statistically significant negative correlation establishes that
-the graph captures real associative structure in human memory.
-
-**Phase 3 — Cross-linguistic comparison.** Construct a second graph from SWOW data
-in another language (Dutch or French, the next-richest SWOW releases). Compare
-clustering coefficients, average path lengths, PageRank centralities, and Louvain
-community structures across the two graphs. Universal anchor concepts and
-language-specific hubs are identified.
-
-**Phase 4 — Markov walks and L2 calibration.** Simulate spreading activation as
-a random walk on the graph using the transition matrix
-`Pᵢⱼ = Wᵢⱼ / Σₖ Wᵢₖ`. Introduce a noise parameter `ε ∈ [0, 1]` that interpolates
-between strong associative transitions and uniform random transitions:
-
-```
-P'ᵢⱼ = (1 − ε) · Pᵢⱼ + ε · (1 / |V|)
-```
-
-The walk distribution at each `ε` is compared (via KL or Jensen-Shannon divergence)
-against the empirical association behavior of non-native English speakers in SWOW.
-The value of `ε` that best fits L2 data anchors the noise parameter to a real
-psycholinguistic phenomenon rather than leaving it as an abstract construct.
-
-## Datasets
-
-**Small World of Words (SWOW).** A crowdsourced word-association database in which
-participants give the first words that come to mind in response to a cue. Provides
-population-level cue → response strength values that serve directly as edge weights.
-English data is the primary working set; a second language is selected for Phase 3.
-Available at <https://smallworldofwords.org>.
-
-**Semantic Priming Project (SPP).** A large lexical-decision priming dataset
-containing z-scored reaction-time priming effects for ~1,661 prime-target pairs at
-both short (200ms) and long (1200ms) stimulus-onset asynchronies. Serves as the
-empirical ground truth for Phase 2 validation. Available at
-<https://www.montana.edu/attmemlab/spp.html>.
-
-The raw data is not included in this repository. Download instructions are below.
-
-## Project Structure
-
-```
-semantic_graph_project/
-├── data/
-│   ├── raw/         # raw SWOW and SPP downloads (gitignored)
-│   └── processed/   # cleaned data and serialized graphs (gitignored)
-├── notebooks/       # numbered Jupyter notebooks, one per analytical step
-├── src/             # reusable Python modules
-├── notes/           # written observations, methodology decisions, data dictionaries
-└── README.md
-```
-
 ## Setup
 
-The project uses Python 3.13 and standard scientific computing libraries.
+The project uses Python 3.13.
 
 ```bash
-# Clone and enter the repo
+# Clone the repo
 git clone https://github.com/strontium-rn/semantic_graph.git
-cd semantic_graph_project
+cd semantic_graph
 
 # Create a virtual environment
 python -m venv .venv
-source .venv/bin/activate          # macOS / Linux
-# .venv\Scripts\activate           # Windows
+source .venv/bin/activate        # macOS / Linux
+# .venv\Scripts\activate         # Windows
 
 # Install dependencies
 pip install -r requirements.txt
@@ -115,31 +24,47 @@ The raw datasets must be downloaded separately and placed in `data/raw/`.
 and download the English 2018 release (`SWOW-EN18`). Place the entire folder at
 `data/raw/SWOW-EN18/`.
 
+**SWOW (Dutch).** From the same site, download the Dutch 2012 release. Place the
+folder at `data/raw/DutchWordAssociationData_April2012C.../`.
+
 **SPP.** From <https://www.montana.edu/attmemlab/spp.html>, download:
 - `items_spreadsheet.xls` — item characteristics
-- `ldt word item analysis.xlsx` — z-scored priming effects (the primary file for
-  Phase 2 validation)
+- `ldt word item analysis.xlsx` — z-scored priming effects
+- `all ldt subs_all trials3.xlsx` — trial-level data
 
-Place both at `data/raw/`.
+Place all three at `data/raw/`.
+
+## Running the Notebooks
+
+Run notebooks in numbered order. Each phase generates processed files that the next
+phase depends on. **Do not skip or reorder.**
+
+| Notebook | Phase | What it does |
+|----------|-------|-------------|
+| `01_data_exploration.ipynb` | Phase 1 | Explores raw SWOW data |
+| `02_graph_construction.ipynb` | Phase 1 | Builds and saves `swow_en_graph.pkl` |
+| `03_spp_validation.ipynb` | Phase 2 | Loads graph, runs priming correlation |
+| `04_dutch_exploration.ipynb` | Phase 3 | Builds Dutch graph, cross-linguistic comparison |
+
+> If you have received the processed data files via the shared Drive link, you can
+> skip notebooks 01–03 and open `04_dutch_exploration.ipynb` directly to see the
+> current state of the project.
 
 ## Implementation Notes
 
-The graph is built and analyzed in Python using **NetworkX**. Markov walks and
-matrix operations are handled with **NumPy** and **SciPy**. Community detection
-uses the **python-louvain** implementation of the Louvain modularity-maximization
-algorithm. Statistical testing uses **SciPy** (correlation and Mann–Whitney U
-tests). Visualization is split between **matplotlib** and **seaborn** for
-distributions and **Gephi** for full network layouts.
+The graph is built and analyzed in Python using **NetworkX**. Markov walks and matrix
+operations use **NumPy** and **SciPy**. Community detection uses **python-louvain**
+(Louvain modularity maximization). Statistical testing uses **SciPy** (Pearson
+correlation, Mann–Whitney U). Visualization uses **matplotlib** and **seaborn** for
+distributions, and **Gephi** for full network layouts.
 
 ## Theoretical Background
 
-The project sits at the intersection of three traditions. The **Spreading
-Activation** theory of semantic memory (Collins & Loftus, 1975) provides the
-cognitive grounding: activating one concept propagates excitation along
-associative links to neighboring concepts, raising their activation level. The
-**Sapir–Whorf** (linguistic relativity) hypothesis provides the cross-linguistic
-motivation: if language influences habitual patterns of thought, language
-communities should organize conceptual space measurably differently. **Network
-science** provides the mathematical machinery — shortest paths, centrality,
-community structure, and random walks — through which both ideas can be made
-quantitatively testable on real psycholinguistic data.
+The project sits at the intersection of three traditions. **Spreading Activation**
+theory (Collins & Loftus, 1975) provides the cognitive grounding: activating one
+concept propagates excitation along associative links to neighboring concepts. The
+**Sapir–Whorf hypothesis** (linguistic relativity) provides the cross-linguistic
+motivation: if language shapes thought, language communities should organize conceptual
+space measurably differently. **Network science** provides the mathematical machinery —
+shortest paths, centrality, community structure, and random walks — through which both
+ideas can be made quantitatively testable on real psycholinguistic data.
