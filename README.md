@@ -123,7 +123,7 @@ The native vs non-native difference is real, and it's structural.
 The graph is built and analyzed in Python using **NetworkX**. Markov walks and matrix
 operations use **NumPy** and **SciPy**. Community detection uses **python-louvain**
 (Louvain modularity maximization). Statistical testing uses **SciPy** (Pearson
-correlation, Mann–Whitney U) and **statsmodels** (regression). Phase 4 compares answer
+correlation) and **statsmodels** (regression). Phase 4 compares answer
 distributions with **Jensen–Shannon divergence** (0 = identical, 1 = totally different;
 lower = better match). Visualization uses **matplotlib** and **seaborn** for
 distributions, and **Gephi** for full network layouts.
